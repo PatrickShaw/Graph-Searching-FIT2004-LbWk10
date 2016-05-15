@@ -75,39 +75,6 @@ class DGraph(Graph):
         """
         return self.initial_vertex_len * self.initial_edges_per_vertex
 
-    def is_bridge(self, current_vertex, edge_index):
-        return not self.depth_first_search(current_vertex, edge_index, current_vertex)
-
-
-    def depth_first_search(self, current_vertex, edge_index, target_vertex):
-        #  Remember the next vertex's index
-        next_vertex_index = current_vertex.edges[edge_index]
-        #print("-------")
-        #print(self)
-        #  Cut off the edge so our algorithm doesn't use this edge again
-        del current_vertex.edges[edge_index]
-        next_vertex = self.vertices[next_vertex_index]
-        if next_vertex == target_vertex:
-            # Good, looks like the vertex we traversed to was the vertex we're looking for
-            # Gonna have to add that edge back in
-            current_vertex.edges.insert(edge_index, next_vertex_index)
-            #print("Found vertex")
-            #print(self)
-            return True
-        # Darn, looks like the vertex isn't the one we're looking for
-        # See if any of the vertices that it's connected to is the correct one
-        for e in range(len(next_vertex.edges)):
-            if self.depth_first_search(next_vertex, e, target_vertex):
-                # Gonna have to add that edge back in
-                current_vertex.edges.insert(edge_index, next_vertex_index)
-                #print("Found vertex in sub call")
-                #print(self)
-                return True
-        # Gonna have to add that edge back in
-        #print("Did not find vertex")
-        current_vertex.edges.insert(edge_index, next_vertex_index)
-        #print(self)
-        return False
 
     @property
     def e_circuit(self):
@@ -116,30 +83,29 @@ class DGraph(Graph):
         vertices_traversed = []
         untraversed_edge_count = self.initial_total_edge_len
         while untraversed_edge_count > 0:
-            print("---------------------------------------------------------")
-            print("On vertex position: " + str(current_vertex.vertex_position))
-            print(self)
+            #print("---------------------------------------------------------")
+            #print("On vertex position: " + str(current_vertex.vertex_position))
+            #print(self)
             # Add this vertex to our traversal history
             vertices_traversed.append(current_vertex.vertex_position)
             # "the vertex has no outgoing edges... TERMINATE"
             if not current_vertex.has_outgoing_edges:
                 #print("vertex has no outgoing edges, returning None")
                 return None
-            # By default use traverse through the first edge of the vertex
-            selected_edge_index = 0
             # "The vertex has two or more outgoing edges... Traverse along
             # edge... does NOT disconnect the vertex
             if len(current_vertex.edges) >= 1:
                 for i in range(len(current_vertex.edges)):
-                    print("Checking if edge to: " + str(current_vertex.edges[i]) + " is a bridge")
-                    if not self.is_bridge(current_vertex, i):
-                        #print("edge to: "+str(current_vertex.edges[i])+" is not a bridge!")
-                        #print(current_vertex)
-                        selected_edge_index = i
+                    #print("Checking if edge to: " + str(current_vertex.edges[i]) + " is a bridge")
+                    if not self.first_edge_is_bridge(current_vertex):
+                        #print(str(current_vertex.edges[0]) + " is not a bridge!")
+                        # Break so that we can pop this of the start of the list
                         break
-            next_vertex_index = current_vertex.edges[selected_edge_index]
-            # print("Travelling to: " + str(next_vertex_index))
-            del current_vertex.edges[selected_edge_index]
+                    # We have to move the edge to the back of the queue since the algorithm only works with checking the first vertex
+                    current_vertex.edges.append(current_vertex.edges.popleft())
+            #print(self)
+            next_vertex_index = current_vertex.edges.popleft()
+            #print("Travelling to: " + str(next_vertex_index))
             current_vertex = self.vertices[next_vertex_index]
             untraversed_edge_count -= 1
         return vertices_traversed
@@ -151,8 +117,8 @@ def main():
     import time
     graph = DGraph(m, n)
     start_time = time.time()
+    e_circuit = graph.e_circuit
     print(time.time() - start_time)
-    print(graph.e_circuit)
-
+    print(e_circuit)
 if __name__ == "__main__":
     main()
