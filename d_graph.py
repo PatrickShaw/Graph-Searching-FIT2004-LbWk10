@@ -1,5 +1,7 @@
 import random
 
+import sys
+
 from int_input import range_input
 from preconditions import preconditions
 from graph import *
@@ -86,6 +88,8 @@ class DGraph(Graph):
             #print("---------------------------------------------------------")
             #print("On vertex position: " + str(current_vertex.vertex_position))
             #print(self)
+            if untraversed_edge_count % 100 == 0:
+                print(untraversed_edge_count)
             # Add this vertex to our traversal history
             vertices_traversed.append(current_vertex.vertex_position)
             # "the vertex has no outgoing edges... TERMINATE"
@@ -112,6 +116,7 @@ class DGraph(Graph):
 
 
 def main():
+    sys.setrecursionlimit(100000000)
     m = range_input("Enter m", 2, 5)
     n = range_input("Enter n", 2, 8)
     import time

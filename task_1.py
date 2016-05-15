@@ -1,6 +1,6 @@
 from int_input import range_input
 from e_circuit import e_circuit
-from d_graph import d_graph
+from d_graph import *
 __author__ = "Patrick Shaw"
 
 def convert_base(n,base):
@@ -24,7 +24,7 @@ def number_to_letter(char):
 if __name__ == "__main__":
     m = range_input("Enter m", 2, 5)
     n = range_input("Enter n", 2, 8)
-    graph = d_graph(m, n)
+    graph = DGraph(m, n)
     circuit = e_circuit(graph, m, n, graph[0])
     if circuit is not None:
         print("E circuit found!")
