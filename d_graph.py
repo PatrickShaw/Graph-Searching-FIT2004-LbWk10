@@ -1,11 +1,13 @@
 import random
 
 import sys
+import threading
 
 from int_input import range_input
 from preconditions import preconditions
 from graph import *
 from collections import deque
+
 __author__ = "Patrick Shaw"
 
 
@@ -19,7 +21,7 @@ class DGraph(Graph):
             :param m: The base/different types of letters that graph can use for each vertex
             :param n: The number of letters associated with each vertex
             :returns: A D graph as a list
-            :complexity: O(m²ⁿ)
+            :complexity: O(m²ⁿ) Which relates to the total number of edges.
                          We create mⁿ vertices and loop through them to add edges,
                          There are m edges for each vertex, thus
                          O(m²ⁿ)
@@ -35,7 +37,7 @@ class DGraph(Graph):
         for v in vertices:
             # For each edge in the vertex
             for _ in range(m):
-                #print(len(v.edges))
+                # print(len(v.edges))
                 v.edges.append(connected_vertex_index)
                 connected_vertex_index += 1
                 connected_vertex_index %= initial_vertex_count
@@ -45,78 +47,67 @@ class DGraph(Graph):
     @property
     def m(self):
         """
-            The number of different letters that can be used in each vertex's associated string
+            :returns: The number of different letters that can be used in each vertex's associated string
         """
         return self.__m
 
     @property
     def n(self):
         """
-            The number of letters associated with each vertex
+            :returns: The number of letters associated with each vertex
         """
         return self.__n
 
     @property
     def initial_vertex_len(self):
         """
-            Returns the initial number of vertices in the D graph
+            :returns: The initial number of vertices in the D graph
         """
-        return self.m**self.n
+        return self.m ** self.n
 
     @property
     def initial_edges_per_vertex(self):
         """
-            Returns the initial number of edges per vertex in the D graph
+            :returns: The initial number of edges per vertex in the D graph
         """
         return self.m
 
     @property
     def initial_total_edge_len(self):
         """
-            Returns the number of edges originally in each
+            :returns: The number of edges originally in each
         """
         return self.initial_vertex_len * self.initial_edges_per_vertex
 
 
-    @property
-    def e_circuit(self):
-        # "Start at any random vertex in the graph"
-        current_vertex = self.vertices[0]  # random.choice(self.vertices)
-        vertices_traversed = []
-        untraversed_edge_count = self.initial_total_edge_len
-        while untraversed_edge_count > 0:
-            #print("---------------------------------------------------------")
-            #print("On vertex position: " + str(current_vertex.vertex_position))
-            #print(self)
-            if untraversed_edge_count % 100 == 0:
-                print(untraversed_edge_count)
-            # Add this vertex to our traversal history
-            vertices_traversed.append(current_vertex.vertex_position)
-            # "the vertex has no outgoing edges... TERMINATE"
-            if not current_vertex.has_outgoing_edges:
-                #print("vertex has no outgoing edges, returning None")
-                return None
-            # "The vertex has two or more outgoing edges... Traverse along
-            # edge... does NOT disconnect the vertex
-            if len(current_vertex.edges) >= 1:
-                for i in range(len(current_vertex.edges)):
-                    #print("Checking if edge to: " + str(current_vertex.edges[i]) + " is a bridge")
-                    if not self.first_edge_is_bridge(current_vertex):
-                        #print(str(current_vertex.edges[0]) + " is not a bridge!")
-                        # Break so that we can pop this of the start of the list
-                        break
-                    # We have to move the edge to the back of the queue since the algorithm only works with checking the first vertex
-                    current_vertex.edges.append(current_vertex.edges.popleft())
-            #print(self)
-            next_vertex_index = current_vertex.edges.popleft()
-            #print("Travelling to: " + str(next_vertex_index))
-            current_vertex = self.vertices[next_vertex_index]
-            untraversed_edge_count -= 1
-        return vertices_traversed
+def convert_base(width, n, base):
+    convert_string = "ABCDE"
+    if n < base:
+        return pad_left(convert_string[n], width)
+    else:
+        return pad_left(convert_base(width, n // base, base) + convert_string[n % base], width)
+
+
+def pad_left(string, width):
+    while len(string) < width:
+        string = 'A' + string
+    return string
+
+
+def number_to_letter(char):
+    if char == 0:
+        return 'A'
+    elif char == 1:
+        return 'B'
+    elif char == 2:
+        return 'C'
+    elif char == 3:
+        return 'D'
 
 
 def main():
-    sys.setrecursionlimit(100000000)
+    sys.setrecursionlimit(2000000000)
+    threading.stack_size(200000000)
     m = range_input("Enter m", 2, 5)
     n = range_input("Enter n", 2, 8)
     import time
@@ -124,6 +115,15 @@ def main():
     start_time = time.time()
     e_circuit = graph.e_circuit
     print(time.time() - start_time)
+    if e_circuit is not None:
+        print("E circuit found!")
+        print(convert_base(n, e_circuit[0], m) + "".join(
+            [convert_base(n, e_circuit[x], m)[-1] for x in range(1, len(e_circuit))]))
+    else:
+        print("E circuit not found!")
+
     print(e_circuit)
+
+
 if __name__ == "__main__":
     main()
